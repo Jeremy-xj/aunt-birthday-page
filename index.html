@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10131a">
+    <title>姑姑，生日快乐</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <canvas id="celebrationCanvas" aria-hidden="true"></canvas>
+
+    <main class="page-shell">
+      <section class="hero" aria-labelledby="birthday-title">
+        <p class="eyebrow">Happy Birthday</p>
+        <h1 id="birthday-title">姑姑，生日快乐</h1>
+        <p class="wish">
+          愿今天的光都为你停留，愿往后的日子温柔明亮、平安顺遂。
+          愿每一岁都有新的欢喜，也有一直被珍惜的幸福。
+        </p>
+
+        <div class="actions">
+          <button class="sound-button" id="soundButton" type="button" aria-pressed="false">
+            <span class="sound-mark" aria-hidden="true"></span>
+            <span id="soundText">播放祝福</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="message" aria-label="生日祝福">
+        <div class="message-line">今天属于你，也属于所有爱你的人。</div>
+        <div class="message-line">愿这一刻的星光，替我们把祝福轻轻送到你身边。</div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
