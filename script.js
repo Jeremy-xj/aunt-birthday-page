@@ -2,6 +2,7 @@ const canvas = document.getElementById("celebrationCanvas");
 const ctx = canvas.getContext("2d");
 const soundButton = document.getElementById("soundButton");
 const soundText = document.getElementById("soundText");
+const soundStatus = document.getElementById("soundStatus");
 const birthdayAudio = document.getElementById("birthdayAudio");
 
 const palette = ["#f2c66d", "#e99cab", "#71d7d0", "#f7f3ea"];
@@ -12,6 +13,7 @@ let height = 0;
 let dpr = 1;
 let particles = [];
 let isPlaying = false;
+let isTogglingSound = false;
 
 function resizeCanvas() {
   width = window.innerWidth;
@@ -107,26 +109,37 @@ function hexToRgba(hex, alpha) {
 }
 
 async function toggleSound() {
+  if (isTogglingSound) {
+    return;
+  }
+  isTogglingSound = true;
+
   if (isPlaying) {
     birthdayAudio.pause();
-    isPlaying = false;
-    soundButton.setAttribute("aria-pressed", "false");
-    soundText.textContent = "\u64ad\u653e\u795d\u798f";
+    updateSoundState(false, "\u5df2\u6682\u505c\uff0c\u518d\u70b9\u4e00\u6b21\u7ee7\u7eed\u64ad\u653e\u3002");
+    isTogglingSound = false;
     return;
   }
 
   try {
+    birthdayAudio.muted = false;
     birthdayAudio.volume = 1;
+    birthdayAudio.load();
     await birthdayAudio.play();
-    isPlaying = true;
-    soundButton.setAttribute("aria-pressed", "true");
-    soundText.textContent = "\u6682\u505c\u795d\u798f";
+    updateSoundState(true, "\u6b63\u5728\u64ad\u653e\u82f1\u6587\u7248 Happy Birthday\u3002");
     launchFirework();
   } catch (error) {
-    isPlaying = false;
-    soundButton.setAttribute("aria-pressed", "false");
-    soundText.textContent = "\u518d\u70b9\u4e00\u6b21";
+    updateSoundState(false, "\u624b\u673a\u6d4f\u89c8\u5668\u62e6\u622a\u4e86\u6309\u94ae\u64ad\u653e\uff0c\u8bf7\u76f4\u63a5\u70b9\u4e0b\u65b9\u64ad\u653e\u5668\u7684\u4e09\u89d2\u64ad\u653e\u952e\u3002");
+  } finally {
+    isTogglingSound = false;
   }
+}
+
+function updateSoundState(nextPlaying, message) {
+  isPlaying = nextPlaying;
+  soundButton.setAttribute("aria-pressed", String(nextPlaying));
+  soundText.textContent = nextPlaying ? "\u6682\u505c\u795d\u798f" : "\u64ad\u653e\u795d\u798f";
+  soundStatus.textContent = message;
 }
 
 resizeCanvas();
@@ -141,8 +154,18 @@ if (!reducedMotion) {
 
 window.addEventListener("resize", resizeCanvas);
 soundButton.addEventListener("click", toggleSound);
+birthdayAudio.addEventListener("play", () => {
+  updateSoundState(true, "\u6b63\u5728\u64ad\u653e\u82f1\u6587\u7248 Happy Birthday\u3002");
+  launchFirework();
+});
+birthdayAudio.addEventListener("pause", () => {
+  if (!birthdayAudio.ended) {
+    updateSoundState(false, "\u5df2\u6682\u505c\uff0c\u518d\u70b9\u4e00\u6b21\u7ee7\u7eed\u64ad\u653e\u3002");
+  }
+});
+birthdayAudio.addEventListener("error", () => {
+  updateSoundState(false, "\u97f3\u9891\u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u540e\u518d\u8bd5\u3002");
+});
 birthdayAudio.addEventListener("ended", () => {
-  isPlaying = false;
-  soundButton.setAttribute("aria-pressed", "false");
-  soundText.textContent = "\u64ad\u653e\u795d\u798f";
+  updateSoundState(false, "\u64ad\u653e\u5b8c\u6210\uff0c\u53ef\u4ee5\u518d\u70b9\u4e00\u6b21\u91cd\u64ad\u3002");
 });

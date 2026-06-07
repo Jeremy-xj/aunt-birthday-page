@@ -9,7 +9,6 @@
   </head>
   <body>
     <canvas id="celebrationCanvas" aria-hidden="true"></canvas>
-    <audio id="birthdayAudio" src="birthday-song.wav" preload="auto" playsinline loop></audio>
 
     <main class="page-shell">
       <section class="hero" aria-labelledby="birthday-title">
@@ -25,6 +24,17 @@
             <span class="sound-mark" aria-hidden="true"></span>
             <span id="soundText">播放祝福</span>
           </button>
+          <p class="sound-status" id="soundStatus">如果按钮没有声音，请点下方播放器。</p>
+          <audio
+            class="audio-player"
+            id="birthdayAudio"
+            preload="metadata"
+            playsinline
+            controls
+            loop
+          >
+            <source src="birthday-song.wav?v=3" type="audio/wav">
+          </audio>
         </div>
       </section>
 
@@ -34,6 +44,6 @@
       </section>
     </main>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=3"></script>
   </body>
 </html>
