@@ -2,6 +2,7 @@ const canvas = document.getElementById("celebrationCanvas");
 const ctx = canvas.getContext("2d");
 const soundButton = document.getElementById("soundButton");
 const soundText = document.getElementById("soundText");
+const birthdayAudio = document.getElementById("birthdayAudio");
 
 const palette = ["#f2c66d", "#e99cab", "#71d7d0", "#f7f3ea"];
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -10,11 +11,7 @@ let width = 0;
 let height = 0;
 let dpr = 1;
 let particles = [];
-let audioContext;
-let masterGain;
-let musicTimer;
 let isPlaying = false;
-let activeOscillators = [];
 
 function resizeCanvas() {
   width = window.innerWidth;
@@ -109,116 +106,27 @@ function hexToRgba(hex, alpha) {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
-function ensureAudio() {
-  if (audioContext) {
-    return;
-  }
-
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  masterGain = audioContext.createGain();
-  masterGain.gain.value = 0.15;
-  masterGain.connect(audioContext.destination);
-}
-
-function playTone(frequency, start, duration, type = "sine", volume = 0.42) {
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(frequency, start);
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(volume, start + 0.035);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-
-  oscillator.connect(gain);
-  gain.connect(masterGain);
-  oscillator.start(start);
-  oscillator.stop(start + duration + 0.04);
-  oscillator.addEventListener("ended", () => {
-    activeOscillators = activeOscillators.filter((active) => active !== oscillator);
-  });
-  activeOscillators.push(oscillator);
-}
-
-function playBirthdaySong() {
-  const now = audioContext.currentTime;
-  const notes = [
-    [392, 0, 0.24],
-    [392, 0.32, 0.24],
-    [440, 0.64, 0.52],
-    [392, 1.28, 0.52],
-    [523.25, 1.92, 0.52],
-    [493.88, 2.56, 0.86],
-    [392, 3.76, 0.24],
-    [392, 4.08, 0.24],
-    [440, 4.4, 0.52],
-    [392, 5.04, 0.52],
-    [587.33, 5.68, 0.52],
-    [523.25, 6.32, 0.86],
-    [392, 7.52, 0.24],
-    [392, 7.84, 0.24],
-    [783.99, 8.16, 0.52],
-    [659.25, 8.8, 0.52],
-    [523.25, 9.44, 0.52],
-    [493.88, 10.08, 0.52],
-    [440, 10.72, 0.9],
-    [698.46, 12, 0.24],
-    [698.46, 12.32, 0.24],
-    [659.25, 12.64, 0.52],
-    [523.25, 13.28, 0.52],
-    [587.33, 13.92, 0.52],
-    [523.25, 14.56, 1.05]
-  ];
-
-  notes.forEach(([frequency, offset, duration]) => {
-    playTone(frequency, now + offset, duration);
-    playTone(frequency * 2, now + offset + 0.012, duration * 0.48, "triangle", 0.065);
-  });
-}
-
-function stopSong() {
-  window.clearInterval(musicTimer);
-  activeOscillators.forEach((oscillator) => {
-    try {
-      oscillator.stop();
-    } catch (error) {
-      // The note may already have ended.
-    }
-  });
-  activeOscillators = [];
-
-  if (masterGain) {
-    masterGain.gain.setTargetAtTime(0.0001, audioContext.currentTime, 0.08);
-    window.setTimeout(() => {
-      if (masterGain) {
-        masterGain.gain.value = 0.15;
-      }
-    }, 220);
-  }
-}
-
 async function toggleSound() {
-  ensureAudio();
-
-  if (audioContext.state === "suspended") {
-    await audioContext.resume();
-  }
-
-  isPlaying = !isPlaying;
-  soundButton.setAttribute("aria-pressed", String(isPlaying));
-  soundText.textContent = isPlaying ? "\u6682\u505c\u795d\u798f" : "\u64ad\u653e\u795d\u798f";
-
   if (isPlaying) {
-    playBirthdaySong();
-    launchFirework();
-    musicTimer = window.setInterval(() => {
-      playBirthdaySong();
-      launchFirework();
-    }, 16600);
+    birthdayAudio.pause();
+    isPlaying = false;
+    soundButton.setAttribute("aria-pressed", "false");
+    soundText.textContent = "\u64ad\u653e\u795d\u798f";
     return;
   }
 
-  stopSong();
+  try {
+    birthdayAudio.volume = 1;
+    await birthdayAudio.play();
+    isPlaying = true;
+    soundButton.setAttribute("aria-pressed", "true");
+    soundText.textContent = "\u6682\u505c\u795d\u798f";
+    launchFirework();
+  } catch (error) {
+    isPlaying = false;
+    soundButton.setAttribute("aria-pressed", "false");
+    soundText.textContent = "\u518d\u70b9\u4e00\u6b21";
+  }
 }
 
 resizeCanvas();
@@ -233,3 +141,8 @@ if (!reducedMotion) {
 
 window.addEventListener("resize", resizeCanvas);
 soundButton.addEventListener("click", toggleSound);
+birthdayAudio.addEventListener("ended", () => {
+  isPlaying = false;
+  soundButton.setAttribute("aria-pressed", "false");
+  soundText.textContent = "\u64ad\u653e\u795d\u798f";
+});
